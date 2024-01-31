@@ -1,0 +1,65 @@
+- name: Copy the compose file
+  become: true
+  template:
+    src: templates/compose.yaml
+    dest: "{{ docker_compose_dir }}/compose.mosquitto.yaml"
+
+- name: Create the mosquitto_mqtt persistent config directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/mosquitto/config"
+    state: directory
+    owner: '1000'
+    group: '1000'
+    mode: '0755'
+
+- name: Copy the config file
+  become: true
+  template:
+    src: templates/mosquitto.conf
+    dest: "{{ docker_dir }}/mosquitto/config/mosquitto.conf"
+  register: compose_file
+
+- name: check whether passwd file exists
+  stat:
+    path: "{{ docker_dir }}/mosquitto/config/passwd"
+  register: passwd_file
+
+- name: Create empty passwd file
+  become: true
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/mosquitto/config/passwd"
+    state: touch
+    owner: '1000'
+    group: '1000'
+    mode: '0700'
+  when: not passwd_file.stat.exists
+
+- name: create certificates for tls
+  include_tasks: ca_certs.yaml
+
+- name: Get mosquitto container info
+  become: true
+  docker_container_info:
+    name: mosquitto
+  register: mosquitto_container
+
+- name: Docker-compose up
+  become: true
+  ansible.builtin.command: "docker compose -f {{ docker_compose_dir }}/compose.mosquitto.yaml up --detach"
+  when: mosquitto_container.container['State']['Running'] == false
+
+- name: Set mosquitto passwd in container
+  become: true
+  community.docker.docker_container_exec:
+    container: mosquitto
+    chdir: /mosquitto/config
+    command: "mosquitto_passwd -c  -b passwd {{mqtt_user}} {{mqtt_password}}"
+  register: passwd_changed
+  when: not passwd_file.stat.exists
+  
+- name: Restart mosquitto
+  become: true
+  ansible.builtin.command: "docker compose -f {{ docker_compose_dir }}/compose.mosquitto.yaml restart"
+  when: passwd_changed.skipped is not defined
+
