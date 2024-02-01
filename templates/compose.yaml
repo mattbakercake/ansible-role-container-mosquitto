@@ -2,10 +2,12 @@ services:
   mosquitto:
     container_name: mosquitto
     image: eclipse-mosquitto
+    user: '{{ mosquitto_uid }}:{{ ssl_cert_gid }}'
     volumes:
       - "{{ docker_dir }}/mosquitto/config:/mosquitto/config"
       - "{{ docker_dir }}/mosquitto/data:/mosquitto/data"
       - "{{ docker_dir }}/mosquitto/log:/mosquitto/log"
+      - /etc/ssl:/etc/ssl
     ports:
       - 1883:1883
       - 8883:8883
