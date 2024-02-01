@@ -36,6 +36,7 @@
   template:
     src: templates/compose.yaml
     dest: "{{ docker_compose_dir }}/compose.mosquitto.yaml"
+  notify: "restart mosquitto"
   register: compose_file
 
 - name: Create the mosquitto_mqtt persistent config directory
@@ -65,13 +66,6 @@
     group: '{{ mosquitto_gid }}'
     mode: '0755'
 
-- name: Copy the config file
-  become: true
-  template:
-    src: templates/mosquitto.conf
-    dest: "{{ docker_dir }}/mosquitto/config/mosquitto.conf"
-  register: config_file
-
 - name: check whether passwd file exists
   stat:
     path: "{{ docker_dir }}/mosquitto/config/passwd"
@@ -87,16 +81,15 @@
     mode: '0700'
   when: not passwd_file.stat.exists
 
-- name: Get mosquitto container info
+- name: Copy the config file
   become: true
-  docker_container_info:
-    name: mosquitto
-  register: mosquitto_container
+  template:
+    src: templates/mosquitto.conf
+    dest: "{{ docker_dir }}/mosquitto/config/mosquitto.conf"
+  notify: restart mosquitto
 
-- name: Docker-compose up
-  become: true
-  ansible.builtin.command: "docker compose -f {{ docker_compose_dir }}/compose.mosquitto.yaml up --detach"
-  when: compose_file.changed or config_file.changed
+- name: Flush handlers #force preceeding handler to run immediately
+  meta: flush_handlers
 
 - name: Set mosquitto passwd in container
   become: true
@@ -104,11 +97,7 @@
     container: mosquitto
     chdir: /mosquitto/config
     command: "mosquitto_passwd -c  -b passwd {{mqtt_user}} {{mqtt_password}}"
-  register: passwd_changed
   when: not passwd_file.stat.exists
-  
-- name: Restart mosquitto
-  become: true
-  ansible.builtin.command: "docker compose -f {{ docker_compose_dir }}/compose.mosquitto.yaml restart"
-  when: passwd_changed.skipped is not defined
+  notify: restart mosquitto
+
 
