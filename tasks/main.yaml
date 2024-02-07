@@ -36,7 +36,6 @@
   template:
     src: templates/compose.yaml
     dest: "{{ docker_compose_dir }}/compose.mosquitto.yaml"
-  notify: "restart mosquitto"
   register: compose_file
 
 - name: Create the mosquitto_mqtt persistent config directory
@@ -86,7 +85,7 @@
   template:
     src: templates/mosquitto.conf
     dest: "{{ docker_dir }}/mosquitto/config/mosquitto.conf"
-  notify: restart mosquitto
+  notify: start mosquitto
 
 - name: Flush handlers #force preceeding handler to run immediately
   meta: flush_handlers

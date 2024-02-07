@@ -1,3 +1,9 @@
+- name: start mosquitto
+  become: true
+  ansible.builtin.command: "{{ item }}"
+  with_items:
+    - "docker compose -f {{ docker_compose_dir }}/compose.mosquitto.yaml up --detach"
+
 - name: restart mosquitto
   become: true
   ansible.builtin.command: "{{ item }}"
