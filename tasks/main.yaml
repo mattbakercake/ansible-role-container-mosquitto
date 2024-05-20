@@ -99,4 +99,7 @@
   when: not passwd_file.stat.exists
   notify: restart mosquitto
 
+- name: Flush handlers #force preceeding handler to run immediately
+  meta: flush_handlers
+
 

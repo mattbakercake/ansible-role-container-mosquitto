@@ -1,12 +1,14 @@
 - name: start mosquitto
   become: true
-  ansible.builtin.command: "{{ item }}"
-  with_items:
-    - "docker compose -f {{ docker_compose_dir }}/compose.mosquitto.yaml up"
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}"
+    files:
+    - compose.mosquitto.yaml
 
 - name: restart mosquitto
   become: true
-  ansible.builtin.command: "{{ item }}"
-  with_items:
-    - "docker stop mosquitto"
-    - "docker compose -f {{ docker_compose_dir }}/compose.mosquitto.yaml up"
+  community.docker.docker_compose_v2:
+    project_src: "{{ docker_compose_dir }}"
+    files:
+    - compose.mosquitto.yaml
+    state: restarted
