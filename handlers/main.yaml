@@ -1,16 +1,16 @@
 - name: start mosquitto
   become: true
   community.docker.docker_compose_v2:
+    project_name: "mosquitto"
     project_src: "{{ docker_compose_dir }}"
     files:
     - compose.mosquitto.yaml
-    remove_orphans: false
 
 - name: restart mosquitto
   become: true
   community.docker.docker_compose_v2:
+    project_name: "mosquitto"
     project_src: "{{ docker_compose_dir }}"
     files:
     - compose.mosquitto.yaml
-    remove_orphans: false
     state: restarted
