@@ -1,3 +1,4 @@
+name: mosquitto
 services:
   mosquitto:
     container_name: mosquitto
