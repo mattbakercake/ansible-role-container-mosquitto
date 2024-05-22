@@ -3,7 +3,7 @@ mqtt_anonymous: "false"
 mqtt_user: mqtt
 #letmein should be overriden with secure password!
 mqtt_password: $6$30sYIlAGtsap3v2N$CI5iiwJtm9Ghmjeogu4zQH0l4wstJeiaksa5G94u1S7gkQnfoY79gCrQERuLZmkQaY0GDYJX1YCaBIatWnc6p0
-mqtt_enable_insecure: "true" #1883
+mqtt_enable_tcp: "true" #1883
 mqtt_enable_tls: "false" #8883
 docker_dir: /usr/local/sbin/docker
 docker_compose_dir: /usr/local/sbin/docker/compose
